@@ -3,7 +3,7 @@ import json
 import pytest
 
 from agents import agent
-from evaluation.run import CASES_FILE, run_cases, score, tools_in, write_report
+from evaluation.run import CASES_FILE, Result, run_cases, score, tools_in, write_report
 from tests.conftest import FakeModel
 from tools import smart_home
 
@@ -30,6 +30,28 @@ def test_tools_are_read_from_the_tool_lines():
 )
 def test_score(case, tools, passed):
     assert score(case, tools) is passed
+
+
+def test_a_run_stops_when_the_quota_is_used_up(monkeypatch):
+    class QuotaModel:
+        def generate_content(self, prompt):
+            raise RuntimeError("429 ResourceExhausted: You exceeded your current quota")
+
+    monkeypatch.setattr(agent, "conversation_history", [])
+    monkeypatch.setattr(agent, "model", QuotaModel())
+    cases = [
+        {"id": 1, "category": "single-step", "command": "tell me a joke", "expect": []},
+        {"id": 2, "category": "single-step", "command": "tell me another", "expect": []},
+    ]
+
+    assert run_cases(cases, pause=0) == []
+
+
+def test_an_incomplete_run_says_so():
+    case = {"id": 1, "category": "single-step", "command": "hi", "expect": []}
+    report = write_report([Result(case, [], "Hello!")], "fake-model", planned=36)
+
+    assert "stopped after 1 of 36 commands" in report
 
 
 def test_the_cases_file_is_valid():
