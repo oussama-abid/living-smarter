@@ -1,9 +1,9 @@
 # speechprocessing/text_to_speech.py
-import os
 import io
 import asyncio
 import pygame
 from deepgram import DeepgramClient, SpeakOptions
+from config import settings
 from typing import Optional, Union
 
 
@@ -15,7 +15,7 @@ class TextToSpeech:
         Args:
             api_key: Deepgram API key. If None, will use DEEPGRAM_API_KEY env var
         """
-        self.api_key = api_key or os.getenv("DEEPGRAM_API_KEY")
+        self.api_key = api_key or settings.deepgram_api_key
         if not self.api_key:
             raise ValueError("Deepgram API key is required")
         
@@ -212,4 +212,4 @@ def run_text_to_speech_demo():
 
 
 if __name__ == "__main__":
-    run_text_to_speech_demo()
+    run_text_to_speech_demo()

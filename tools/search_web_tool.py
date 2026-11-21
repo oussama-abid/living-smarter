@@ -1,5 +1,6 @@
-import os
 from pydantic import Field
+
+from config import require, settings
 from .base_tool import BaseTool
 from tavily import TavilyClient
 
@@ -16,7 +17,9 @@ class SearchWebTool(BaseTool):
         @return content The combined content from the search results.
         """
         # Initialize the Tavily client for searching internet
-        tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+        tavily = TavilyClient(
+            api_key=require(settings.tavily_api_key, "TAVILY_API_KEY", "Web search")
+        )
 
         content = ""
         response = tavily.search(query=query, max_results=4)

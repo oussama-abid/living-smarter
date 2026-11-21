@@ -2,13 +2,12 @@ import sqlite3
 import re
 from datetime import datetime
 import google.generativeai as genai
-import os
+from config import settings
 
-DB_PATH = "devices.db"
+DB_PATH = settings.database_path
 
-# Configure Gemini API (make sure GEMINI_API_KEY is in your env)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+genai.configure(api_key=settings.gemini_api_key)
+model = genai.GenerativeModel(settings.gemini_helper_model)
 
 # Map various user actions to normalized device states
 ACTION_TO_STATE = {

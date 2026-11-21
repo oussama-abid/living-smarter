@@ -6,22 +6,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
+from config import settings
+
 def open_youtube(query: str = ""):
     if not query:
         return "No search query provided for YouTube."
 
     options = webdriver.ChromeOptions()
     
-    # Set the path to your Brave browser executable
-    # Windows path example:
-    options.binary_location = r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
-    
-    # macOS path example (uncomment if on macOS):
-    # options.binary_location = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
-    
-    # Linux path example (uncomment if on Linux):
-    # options.binary_location = "/usr/bin/brave-browser"
-    
+    # Optional: another Chromium-based browser such as Brave (BROWSER_BINARY in .env)
+    if settings.browser_binary:
+        options.binary_location = settings.browser_binary
+
     options.add_argument("--start-maximized")
     # options.add_argument("--headless")  # Uncomment if you want headless mode
 
@@ -93,4 +89,4 @@ def open_youtube(query: str = ""):
 
         return f"Playing '{query}' on YouTube using Brave browser."
     except Exception as e:
-        return f"Failed to open YouTube: {e}"
+        return f"Failed to open YouTube: {e}"
