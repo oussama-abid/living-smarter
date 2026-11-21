@@ -34,6 +34,23 @@ have refused. Single-step commands were reliable.
 
 The evaluation can be rerun with one command (see [Evaluation](#evaluation)).
 
+### Rerun with a current model
+
+The model used in the paper has been retired, so the evaluation was rerun
+with `gemini-3.5-flash-lite`. The free API tier stopped the run after the
+first 14 commands, all of them single-step:
+
+| Commands 1–14 (single-step) | Correct |
+|---|---|
+| Rerun: right tools chosen (scored automatically) | **14 / 14** |
+| Paper: task done (scored by hand) | 11 / 14 |
+
+The three commands that failed in the paper (tomorrow's weather in Hannover,
+"which doors are open" and "what was my last email about") all chose the
+right tools in the rerun. The two measures differ, so this is an indication,
+not a strict comparison. A complete run needs about 100 requests, more than
+the free daily quota.
+
 ## How it works
 
 ```mermaid
