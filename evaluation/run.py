@@ -105,6 +105,12 @@ def use_temporary_smart_home(directory: Path) -> None:
     device_db.insert_sample_devices()
 
 
+def is_quota_error(error: Exception) -> bool:
+    """Gemini's rate limit or daily quota (HTTP 429), not a mistake of the assistant."""
+    text = f"{type(error).__name__} {error}"
+    return "ResourceExhausted" in text or "429" in text
+
+
 def run_cases(cases: list[dict], pause: float) -> list[Result]:
     from agents import agent
 
@@ -121,6 +127,11 @@ def run_cases(cases: list[dict], pause: float) -> list[Result]:
             reply, tool_calls, _ = agent.process_user_input(case["command"])
             result = Result(case, tools_in(tool_calls), reply)
         except Exception as error:  # one failing case must not stop the run
+            if is_quota_error(error):
+                # Every following request would fail too: stop instead of
+                # counting quota errors as failures of the assistant
+                print(f"\nStopped at case {case['id']}: the Gemini quota is used up.")
+                break
             result = Result(case, [], "", error=f"{type(error).__name__}: {error}")
         print(f"     {'PASS' if result.passed else 'FAIL'}  tools: {result.tools or '-'}")
         results.append(result)
@@ -155,13 +166,21 @@ def _mark(value: bool | None) -> str:
     return {True: "✅", False: "❌", None: "-"}[value]
 
 
-def write_report(results: list[Result], model: str) -> str:
+def write_report(results: list[Result], model: str, planned: int | None = None) -> str:
     lines = [
         "# Evaluation results",
         "",
         f"Run on {datetime.now():%Y-%m-%d %H:%M} with `{model}`. "
         "Scored automatically on tool selection; review the replies by hand for answer quality.",
         "",
+    ]
+    if planned and len(results) < planned:
+        lines += [
+            f"**Incomplete:** stopped after {len(results)} of {planned} commands because the "
+            "Gemini quota was used up. Rerun later, or with a model that has a higher quota.",
+            "",
+        ]
+    lines += [
         "| Category | Correct tools now | Task done in the paper |",
         "|---|---|---|",
     ]
@@ -208,7 +227,9 @@ def main() -> None:
         use_temporary_smart_home(Path(directory))
         results = run_cases(cases, args.pause)
 
-    report = write_report(results, settings.gemini_model)
+    if not results:
+        raise SystemExit("No command could be run: the Gemini quota is used up.")
+    report = write_report(results, settings.gemini_model, planned=len(cases))
     RESULTS_FILE.write_text(report, encoding="utf-8")
     print()
     print(f"{'category':<15} {'now':>9}   {'paper':>9}")
