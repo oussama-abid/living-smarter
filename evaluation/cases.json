@@ -1,0 +1,340 @@
+{
+  "source": "Tables 2-6 of the paper; the original list of 36 is not available, so every table row is used once (38 commands).",
+  "cases": [
+    {
+      "id": 1,
+      "category": "single-step",
+      "command": "Turn off the kitchen light.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "single-step",
+      "command": "Play \"Drake One Dance\".",
+      "expect": [
+        "open_youtube"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "single-step",
+      "command": "What will be the weather tomorrow in Hannover?",
+      "expect": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "single-step",
+      "command": "What's the weather like today in Bremen?",
+      "expect": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "single-step",
+      "command": "Tell me a joke.",
+      "expect": []
+    },
+    {
+      "id": 6,
+      "category": "single-step",
+      "command": "Send email to student@example.com and say hello.",
+      "expect": [
+        "send_email"
+      ],
+      "note": "The paper used a real address; replaced by an example address."
+    },
+    {
+      "id": 7,
+      "category": "single-step",
+      "command": "Which activities can I do in Bremen?",
+      "expect": [],
+      "allow": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 8,
+      "category": "single-step",
+      "command": "Which doors are open?",
+      "expect": [],
+      "allow": [
+        "control_device"
+      ],
+      "note": "There is no tool to read device states, so the assistant can only answer or ask; check the reply."
+    },
+    {
+      "id": 9,
+      "category": "single-step",
+      "command": "What is the capital of China?",
+      "expect": [],
+      "allow": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 10,
+      "category": "single-step",
+      "command": "What's the tallest building in the world?",
+      "expect": [],
+      "allow": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 11,
+      "category": "single-step",
+      "command": "Play Squid Game 3 trailer in YouTube.",
+      "expect": [
+        "open_youtube"
+      ]
+    },
+    {
+      "id": 12,
+      "category": "single-step",
+      "command": "Open garage doors.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 13,
+      "category": "single-step",
+      "command": "Turn off all the lights.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 14,
+      "category": "single-step",
+      "command": "What was my last email about?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ]
+    },
+    {
+      "id": 15,
+      "category": "single-step",
+      "command": "Is there any football game today in Germany?",
+      "expect": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 16,
+      "category": "multi-step",
+      "command": "Turn on all living room lights.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 17,
+      "category": "multi-step",
+      "command": "Set all TVs volume to 30.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 18,
+      "category": "multi-step",
+      "command": "Open front door and turn off all lights.",
+      "expect": [
+        "control_device",
+        "control_device"
+      ]
+    },
+    {
+      "id": 19,
+      "category": "multi-step",
+      "command": "I want to listen to Adele Hello.",
+      "expect": [
+        "open_youtube"
+      ]
+    },
+    {
+      "id": 20,
+      "category": "multi-step",
+      "command": "I want to sleep, setup the bedroom lights.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 21,
+      "category": "multi-step",
+      "command": "Turn off all the lights, set the house temperature to 22, and turn on bedroom TV.",
+      "expect": [
+        "control_device",
+        "control_device",
+        "control_device"
+      ]
+    },
+    {
+      "id": 22,
+      "category": "multi-step",
+      "command": "Play last Mr Beast video, and set the volume of all TVs to 40.",
+      "expect": [
+        "open_youtube",
+        "control_device"
+      ]
+    },
+    {
+      "id": 23,
+      "category": "multi-step",
+      "command": "How many emails I got today and from who?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ],
+      "note": "Also listed under conversational continuity in the paper."
+    },
+    {
+      "id": 24,
+      "category": "multi-step",
+      "command": "Remind Manel with email that we have meeting today at 16h.",
+      "expect": [
+        "send_email"
+      ]
+    },
+    {
+      "id": 25,
+      "category": "multi-step",
+      "command": "Turn on coffee machine and tell me which activity I can do today, also close garage doors.",
+      "expect": [
+        "control_device",
+        "control_device"
+      ],
+      "allow": [
+        "search_web"
+      ]
+    },
+    {
+      "id": 26,
+      "category": "multi-step",
+      "command": "What is temperature in living room, and turn off all the lights there, also please send email to my boss tell him I'm not coming today.",
+      "expect": [
+        "control_device",
+        "send_email"
+      ]
+    },
+    {
+      "id": 27,
+      "category": "ambiguous",
+      "command": "I want a coffee.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 28,
+      "category": "ambiguous",
+      "command": "Do I have messages today?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ]
+    },
+    {
+      "id": 29,
+      "category": "ambiguous",
+      "command": "Who sent a message today?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ]
+    },
+    {
+      "id": 30,
+      "category": "ambiguous",
+      "command": "Do I have email from Amazon today?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ]
+    },
+    {
+      "id": 31,
+      "category": "ambiguous",
+      "command": "Summarize my last 4 emails.",
+      "expect": [
+        "summarize_last_n_emails"
+      ]
+    },
+    {
+      "id": 32,
+      "category": "ambiguous",
+      "command": "Do I have unread email last 24h?",
+      "expect": [],
+      "any_of": [
+        "get_today_email_count",
+        "summarize_last_n_emails",
+        "check_email"
+      ]
+    },
+    {
+      "id": 33,
+      "category": "ambiguous",
+      "command": "I want to sleep, setup the bedroom.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 34,
+      "category": "ambiguous",
+      "command": "It's very cold in the bedroom.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 35,
+      "category": "ambiguous",
+      "command": "I'm feeling sad today.",
+      "expect": []
+    },
+    {
+      "id": 36,
+      "category": "conversational",
+      "command": "Prepare the room for a movie night.",
+      "expect": [
+        "control_device"
+      ]
+    },
+    {
+      "id": 37,
+      "category": "impossible",
+      "command": "Turn off kitchen lights, open window in bedroom, tell me a joke, recommend recipe for dinner, set volumes to 10, close all doors, turn off all cameras, and I'm going to sleep setup my room, who is the winner of global award 2018, when is next world cup, what are the most important news today.",
+      "expect": [],
+      "note": "Expected: a polite refusal or a request to split it up, not a long chain of actions."
+    },
+    {
+      "id": 38,
+      "category": "impossible",
+      "command": "How long does it take me to get to Bremen Airport from Domsheide, and what is the best way to reach that destination?",
+      "expect": [],
+      "allow": [
+        "search_web"
+      ],
+      "note": "No map or routing tool."
+    }
+  ]
+}
