@@ -1,6 +1,5 @@
-import os
-from dotenv import load_dotenv
 import google.generativeai as genai
+from config import settings
 from prompts.prompts import tool_instruction_prompt, response_prompt, general_chat_prompt
 from tools import smart_home, youtube
 from tools.search_web_tool import SearchWebTool
@@ -8,10 +7,9 @@ from tools.gmail_tool import send_email, get_today_email_count, summarize_last_n
 import re
 import shlex
 
-load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key=settings.gemini_api_key)
 
-model = genai.GenerativeModel("gemini-2.5-flash-preview-04-17")
+model = genai.GenerativeModel(settings.gemini_model)
 
 # Keep conversation history here
 conversation_history = []

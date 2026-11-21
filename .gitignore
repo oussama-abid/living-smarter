@@ -15,3 +15,6 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
+# Google OAuth files (see GOOGLE_CREDENTIALS_PATH in .env.example)
+secrets/

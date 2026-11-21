@@ -7,6 +7,7 @@ from googleapiclient.discovery import build
 import base64
 from email.mime.text import MIMEText
 import google.generativeai as genai
+from config import ConfigError, settings
 
 # Gmail API scopes
 SCOPES = [
@@ -14,22 +15,28 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly"
 ]
 
-# Initialize Gemini model once here
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+genai.configure(api_key=settings.gemini_api_key)
+model = genai.GenerativeModel(settings.gemini_helper_model)
 
 def get_gmail_service():
+    token_path = settings.google_token_path
+    credentials_path = settings.google_credentials_path
     creds = None
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if token_path.exists():
+        creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            if not credentials_path.exists():
+                raise ConfigError(
+                    f"The Gmail tool needs a Google OAuth client file at {credentials_path} "
+                    "(see GOOGLE_CREDENTIALS_PATH in .env.example)."
+                )
+            flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), SCOPES)
             creds = flow.run_local_server(port=0)
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
+        token_path.parent.mkdir(parents=True, exist_ok=True)
+        token_path.write_text(creds.to_json())
     service = build("gmail", "v1", credentials=creds)
     return service
 

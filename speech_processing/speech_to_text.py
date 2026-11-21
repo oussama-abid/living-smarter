@@ -1,5 +1,4 @@
 # speechprocessing/speech_to_text.py
-import os
 import json
 import asyncio
 import pyaudio
@@ -11,6 +10,7 @@ from deepgram import (
     LiveOptions,
     Microphone,
 )
+from config import settings
 from typing import Callable, Optional
 
 
@@ -22,7 +22,7 @@ class SpeechToText:
         Args:
             api_key: Deepgram API key. If None, will use DEEPGRAM_API_KEY env var
         """
-        self.api_key = api_key or os.getenv("DEEPGRAM_API_KEY")
+        self.api_key = api_key or settings.deepgram_api_key
         if not self.api_key:
             raise ValueError("Deepgram API key is required")
         
@@ -195,4 +195,4 @@ def run_speech_to_text_demo():
 
 
 if __name__ == "__main__":
-    run_speech_to_text_demo()
+    run_speech_to_text_demo()
