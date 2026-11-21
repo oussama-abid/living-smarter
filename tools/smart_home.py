@@ -30,7 +30,8 @@ ACTION_TO_STATE = {
 
 def normalize_action(action):
     action = action.lower()
-    for key in ACTION_TO_STATE:
+    # Longest phrases first: "unlock" contains "lock", "deactivate" contains "activate"
+    for key in sorted(ACTION_TO_STATE, key=len, reverse=True):
         if key in action:
             return ACTION_TO_STATE[key]
     return None
