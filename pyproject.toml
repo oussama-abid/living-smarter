@@ -26,6 +26,7 @@ voice = [
 
 [dependency-groups]
 dev = [
+    "pytest>=9.2.0",
     "ruff",
 ]
 
@@ -43,3 +44,8 @@ ignore = ["E501"]  # long prompt strings are fine; the formatter handles code
 
 [tool.ruff.lint.isort]
 known-first-party = ["agents", "config", "db", "prompts", "speech_processing", "tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# google-generativeai warns that it is deprecated on every import
+filterwarnings = ["ignore::FutureWarning"]
