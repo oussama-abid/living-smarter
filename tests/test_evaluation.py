@@ -35,7 +35,8 @@ def test_score(case, tools, passed):
 def test_the_cases_file_is_valid():
     cases = json.loads(CASES_FILE.read_text(encoding="utf-8"))["cases"]
 
-    assert len(cases) == 38
+    assert len(cases) == 36
+    assert sum(case["paper"]["task_done"] for case in cases) == 26  # as in the paper
     assert len({case["id"] for case in cases}) == len(cases)
     for case in cases:
         assert case["command"] and case["category"] and isinstance(case["expect"], list)
@@ -68,4 +69,6 @@ def test_a_run_never_sends_email_and_uses_its_own_database(devices_db, read_devi
     assert result.passed
     assert read_device("light1")["state"] == "on"
     assert "Would send an email" in agent.send_email("boss@example.com", "Sick", "Not coming")
-    assert "| 1 | multi-step |" in write_report([result], "fake-model")
+    report = write_report([result], "fake-model")
+    assert "| 1 | multi-step |" in report
+    assert "| multi-step | 1 / 1 (100%) | 0 / 1 (0%) |" in report  # no paper result for this case

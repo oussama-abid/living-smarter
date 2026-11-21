@@ -129,18 +129,30 @@ def run_cases(cases: list[dict], pause: float) -> list[Result]:
     return results
 
 
-def summary_rows(results: list[Result]) -> list[tuple[str, int, int]]:
+def paper_task_done(case: dict) -> bool | None:
+    """The hand-scored result from the paper, when the case has one."""
+    return case.get("paper", {}).get("task_done")
+
+
+def summary_rows(results: list[Result]) -> list[tuple[str, int, int, int]]:
+    """Per category: (name, passed now, total, done in the paper)."""
     rows: dict[str, list[int]] = {}
     for result in results:
-        passed, total = rows.setdefault(result.case["category"], [0, 0])
-        rows[result.case["category"]] = [passed + result.passed, total + 1]
-    rows["all"] = [sum(r.passed for r in results), len(results)]
-    return [(name, passed, total) for name, (passed, total) in rows.items()]
+        row = rows.setdefault(result.case["category"], [0, 0, 0])
+        row[0] += result.passed
+        row[1] += 1
+        row[2] += bool(paper_task_done(result.case))
+    rows["all"] = [sum(row[i] for row in rows.values()) for i in range(3)]
+    return [(name, passed, total, paper) for name, (passed, total, paper) in rows.items()]
 
 
 def _cell(text: str, limit: int = 220) -> str:
     text = " ".join(text.split()).replace("|", "\\|")
     return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def _mark(value: bool | None) -> str:
+    return {True: "✅", False: "❌", None: "-"}[value]
 
 
 def write_report(results: list[Result], model: str) -> str:
@@ -150,15 +162,18 @@ def write_report(results: list[Result], model: str) -> str:
         f"Run on {datetime.now():%Y-%m-%d %H:%M} with `{model}`. "
         "Scored automatically on tool selection; review the replies by hand for answer quality.",
         "",
-        "| Category | Correct tools | Share |",
+        "| Category | Correct tools now | Task done in the paper |",
         "|---|---|---|",
     ]
-    for name, passed, total in summary_rows(results):
-        lines.append(f"| {name} | {passed} / {total} | {passed / total:.0%} |")
+    for name, passed, total, paper in summary_rows(results):
+        lines.append(
+            f"| {name} | {passed} / {total} ({passed / total:.0%}) "
+            f"| {paper} / {total} ({paper / total:.0%}) |"
+        )
     lines += [
         "",
-        "| # | Category | Command | Expected | Called | Result | Reply |",
-        "|---|---|---|---|---|---|---|",
+        "| # | Category | Command | Expected | Called | Now | Paper | Reply |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for r in results:
         expected = ", ".join(r.case["expect"]) or "-"
@@ -167,7 +182,7 @@ def write_report(results: list[Result], model: str) -> str:
         lines.append(
             f"| {r.case['id']} | {r.case['category']} | {_cell(r.case['command'], 90)} | "
             f"{expected} | {', '.join(r.tools) or '-'} | {'✅' if r.passed else '❌'} | "
-            f"{_cell(r.error or r.reply)} |"
+            f"{_mark(paper_task_done(r.case))} | {_cell(r.error or r.reply)} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -196,8 +211,11 @@ def main() -> None:
     report = write_report(results, settings.gemini_model)
     RESULTS_FILE.write_text(report, encoding="utf-8")
     print()
-    for name, passed, total in summary_rows(results):
-        print(f"{name:<15} {passed:>2} / {total:<2}  {passed / total:.0%}")
+    print(f"{'category':<15} {'now':>9}   {'paper':>9}")
+    for name, passed, total, paper in summary_rows(results):
+        print(
+            f"{name:<15} {passed:>2} / {total:<2} {passed / total:>4.0%}   {paper:>2} / {total:<2} {paper / total:>4.0%}"
+        )
     print(f"\nFull results: {RESULTS_FILE}")
 
 
