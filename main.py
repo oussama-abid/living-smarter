@@ -8,7 +8,6 @@ except ConfigError as error:
 
 
 if __name__ == "__main__":
-    # The simulated smart home: created on the first start, kept afterwards
     init_db()
     insert_sample_devices()
 

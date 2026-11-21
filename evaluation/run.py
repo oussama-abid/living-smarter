@@ -1,18 +1,3 @@
-"""Rerun the paper's evaluation against the real Gemini models.
-
-    uv run python -m evaluation.run
-    uv run python -m evaluation.run --category multi-step --pause 15
-
-Gemini makes every decision for real. Tools with side effects (email,
-YouTube, web search) are replaced by recorders that only write down what
-would have happened, and the smart home runs on a temporary database.
-A run therefore sends no email and changes nothing outside this folder.
-
-Each case is scored automatically: did the assistant call the tools the
-command needs? The replies are saved too, so they can be reviewed by hand,
-as in the paper.
-"""
-
 import argparse
 import json
 import re
@@ -41,12 +26,10 @@ class Result:
 
 
 def tools_in(tool_calls: str | None) -> list[str]:
-    """Names of the tools in the orchestrator's TOOL: lines, in order."""
     return TOOL_NAME.findall(tool_calls or "")
 
 
 def score(case: dict, tools: list[str]) -> bool:
-    """True when the called tools match what the command needs."""
     called = Counter(tools)
     for name, count in Counter(case["expect"]).items():
         if called[name] < count:
@@ -54,7 +37,6 @@ def score(case: dict, tools: list[str]) -> bool:
     any_of = case.get("any_of")
     if any_of and not any(called[name] for name in any_of):
         return False
-    # Commands that need no tool: only the explicitly allowed ones may run
     if not case["expect"] and not any_of:
         allowed = set(case.get("allow", []))
         if any(name not in allowed for name in called):
@@ -63,7 +45,6 @@ def score(case: dict, tools: list[str]) -> bool:
 
 
 def install_recorders(agent) -> None:
-    """Replace tools that act on the outside world with harmless stand-ins."""
 
     def open_youtube(query=""):
         return f"[evaluation] Would open YouTube and play: {query}"
@@ -106,7 +87,6 @@ def use_temporary_smart_home(directory: Path) -> None:
 
 
 def is_quota_error(error: Exception) -> bool:
-    """Gemini's rate limit or daily quota (HTTP 429), not a mistake of the assistant."""
     text = f"{type(error).__name__} {error}"
     return "ResourceExhausted" in text or "429" in text
 
@@ -118,7 +98,6 @@ def run_cases(cases: list[dict], pause: float) -> list[Result]:
     results = []
     category = None
     for case in cases:
-        # One conversation per category, so follow-up commands have context
         if case["category"] != category:
             category = case["category"]
             agent.conversation_history = []
@@ -126,10 +105,8 @@ def run_cases(cases: list[dict], pause: float) -> list[Result]:
         try:
             reply, tool_calls, _ = agent.process_user_input(case["command"])
             result = Result(case, tools_in(tool_calls), reply)
-        except Exception as error:  # one failing case must not stop the run
+        except Exception as error:
             if is_quota_error(error):
-                # Every following request would fail too: stop instead of
-                # counting quota errors as failures of the assistant
                 print(f"\nStopped at case {case['id']}: the Gemini quota is used up.")
                 break
             result = Result(case, [], "", error=f"{type(error).__name__}: {error}")
@@ -141,12 +118,10 @@ def run_cases(cases: list[dict], pause: float) -> list[Result]:
 
 
 def paper_task_done(case: dict) -> bool | None:
-    """The hand-scored result from the paper, when the case has one."""
     return case.get("paper", {}).get("task_done")
 
 
 def summary_rows(results: list[Result]) -> list[tuple[str, int, int, int]]:
-    """Per category: (name, passed now, total, done in the paper)."""
     rows: dict[str, list[int]] = {}
     for result in results:
         row = rows.setdefault(result.case["category"], [0, 0, 0])
@@ -220,7 +195,7 @@ def main() -> None:
 
     try:
         from config import settings
-    except RuntimeError as error:  # config.ConfigError, raised while the settings load
+    except RuntimeError as error:
         raise SystemExit(f"Configuration error: {error}") from None
 
     with tempfile.TemporaryDirectory() as directory:

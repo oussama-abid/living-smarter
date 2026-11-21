@@ -15,14 +15,11 @@ def open_youtube(query: str = ""):
 
     options = webdriver.ChromeOptions()
 
-    # Optional: another Chromium-based browser such as Brave (BROWSER_BINARY in .env)
     if settings.browser_binary:
         options.binary_location = settings.browser_binary
 
     options.add_argument("--start-maximized")
-    # options.add_argument("--headless")  # Uncomment if you want headless mode
 
-    # Brave uses the same ChromeDriver as Chrome
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     try:
@@ -30,12 +27,9 @@ def open_youtube(query: str = ""):
 
         wait = WebDriverWait(driver, 10)
 
-        # Handle cookie consent popup with multiple possible selectors
         try:
-            # Wait a bit for the page to load
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-            # Try multiple possible consent button selectors
             consent_selectors = [
                 "//button[contains(text(),'Accept all')]",
                 "//button[contains(text(),'I agree')]",
@@ -47,7 +41,7 @@ def open_youtube(query: str = ""):
                 "//yt-button-renderer[@id='button']//button[contains(text(), 'Accept')]",
                 "[aria-label='Accept all']",
                 "[data-testid='accept-button']",
-                "button[jsname='b3VHJd']",  # YouTube's specific consent button
+                "button[jsname='b3VHJd']",
             ]
 
             consent_clicked = False
@@ -75,12 +69,10 @@ def open_youtube(query: str = ""):
             print(f"Error handling consent popup: {e}")
             pass
 
-        # Wait for search box and input query
         search_box = wait.until(EC.presence_of_element_located((By.NAME, "search_query")))
         search_box.send_keys(query)
         search_box.send_keys(Keys.RETURN)
 
-        # Wait for results page to load and video titles to be visible
         first_video = wait.until(EC.element_to_be_clickable((By.ID, "video-title")))
         first_video.click()
 

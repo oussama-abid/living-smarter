@@ -1,20 +1,15 @@
-# Secrets: API keys and Google OAuth files never go into Git
 .env
 token.json
 credentials.json
 
-# Local SQLite database, created by db/device_db.py
 *.db
 
-# Python
 __pycache__/
 *.pyc
 .venv/
 
-# Editors and OS
 .vscode/
 .idea/
 .DS_Store
 
-# Google OAuth files (see GOOGLE_CREDENTIALS_PATH in .env.example)
 secrets/

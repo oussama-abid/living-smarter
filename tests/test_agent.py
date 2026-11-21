@@ -15,11 +15,11 @@ def test_a_device_command_runs_the_smart_home_tool(read_device, monkeypatch):
         agent,
         "model",
         FakeModel(
-            'TOOL:control_device("the living room light" "turn on")',  # orchestrator decision
-            "The living room light is on now.",  # final answer
+            'TOOL:control_device("the living room light" "turn on")',
+            "The living room light is on now.",
         ),
     )
-    monkeypatch.setattr(smart_home, "model", FakeModel("light1"))  # device matching
+    monkeypatch.setattr(smart_home, "model", FakeModel("light1"))
 
     reply, tool_call, tool_result = agent.process_user_input("Turn on the living room light")
 
@@ -55,7 +55,7 @@ def test_play_commands_go_straight_to_youtube(monkeypatch):
     agent.process_user_input("play lofi beats")
 
     assert played == ["lofi beats"]
-    assert len(model.prompts) == 1  # no model call needed to choose the tool
+    assert len(model.prompts) == 1
 
 
 def test_a_normal_question_is_answered_without_tools(monkeypatch):

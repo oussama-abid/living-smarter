@@ -10,7 +10,6 @@ from googleapiclient.discovery import build
 
 from config import ConfigError, settings
 
-# Gmail API scopes
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/gmail.readonly",
@@ -45,7 +44,6 @@ def get_gmail_service():
 
 def send_email(to_email, subject, body_idea, from_email=None):
     try:
-        # Use Gemini to generate a full email body from the subject and idea
         gemini_prompt = f"""
 You are an assistant helping write professional and friendly emails.
 
@@ -63,7 +61,6 @@ Respond with only the final email body.
         response = model.generate_content(gemini_prompt)
         formatted_body = response.candidates[0].content.parts[0].text.strip()
 
-        # Compose and send the email using Gmail API
         service = get_gmail_service()
         message = MIMEText(formatted_body)
         message["to"] = to_email
@@ -84,9 +81,7 @@ Respond with only the final email body.
 def get_today_email_count():
     try:
         service = get_gmail_service()
-        # Gmail date format: YYYY/MM/DD
         today = datetime.date.today()
-        # Gmail query format for after: YYYY/MM/DD
         query = f"after:{today.strftime('%Y/%m/%d')}"
         result = service.users().messages().list(userId="me", q=query).execute()
         messages = result.get("messages", [])
@@ -99,7 +94,6 @@ def get_today_email_count():
 def summarize_last_n_emails(n):
     try:
         service = get_gmail_service()
-        # Get last n messages (no query to get all)
         result = (
             service.users().messages().list(userId="me", maxResults=n, labelIds=["INBOX"]).execute()
         )
@@ -130,12 +124,10 @@ def summarize_last_n_emails(n):
 
             snippet = msg_detail.get("snippet", "")
 
-            # Append sender, subject, snippet for summarization
             email_texts.append(
                 f"From: {from_header}\nSubject: {subject_header}\nSnippet: {snippet}"
             )
 
-        # Prepare prompt for Gemini summarization
         prompt = (
             f"Summarize the following {len(email_texts)} emails briefly, mentioning the sender and main topics:\n\n"
             + "\n\n".join(email_texts)

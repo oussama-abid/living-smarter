@@ -17,7 +17,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Voice mode: microphone input and spoken answers (PyAudio needs PortAudio installed)
 voice = [
     "deepgram-sdk>=3,<4",
     "pyaudio",
@@ -38,14 +37,12 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-# Errors, pyflakes, import order, modern Python, common bugs
 select = ["E", "F", "I", "UP", "B"]
-ignore = ["E501"]  # long prompt strings are fine; the formatter handles code
+ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["agents", "config", "db", "prompts", "speech_processing", "tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# google-generativeai warns that it is deprecated on every import
 filterwarnings = ["ignore::FutureWarning"]

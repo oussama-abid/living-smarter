@@ -13,21 +13,17 @@ genai.configure(api_key=settings.gemini_api_key)
 
 model = genai.GenerativeModel(settings.gemini_model)
 
-# Keep conversation history here
 conversation_history = []
 
 
 def decide_tool(user_input: str) -> str:
-    # First, handle direct "play" commands to avoid extra clarifications
     ui_lower = user_input.lower().strip()
     if ui_lower.startswith("play "):
         query = user_input[5:].strip()
         if query:
-            # Return the tool call directly for open_youtube with the query
             return f'TOOL:open_youtube("{query}")'
 
-    # If not a direct play command, proceed with model-based tool decision
-    context_for_tool = "\n".join(conversation_history[-6:])  # last 6 lines as context
+    context_for_tool = "\n".join(conversation_history[-6:])
     prompt = tool_instruction_prompt + "\n" + context_for_tool + f"\nUser: {user_input}\nAssistant:"
     response = model.generate_content(prompt)
     content = response.candidates[0].content.parts[0].text
@@ -35,10 +31,6 @@ def decide_tool(user_input: str) -> str:
 
 
 def run_tool_from_call_multiple(tool_calls_text: str):
-    """
-    Parse multiple TOOL calls (one per line), run each, and collect results.
-    Return a list of (tool_call, tool_result) tuples.
-    """
     results = []
     lines = [line.strip() for line in tool_calls_text.strip().splitlines() if line.strip()]
     pattern = r"^TOOL:(\w+)\((.*)\)$"
@@ -68,12 +60,8 @@ def run_tool_from_call_multiple(tool_calls_text: str):
                     "control_device tool expects at least 2 arguments: device_name_or_desc, action"
                 )
             else:
-                # Join all args except last as device identifier / description, last arg is action
-                # (Or just treat first arg as description and second as action if always 2 args)
-                # To support flexible user input, you can do:
                 device_desc = args[0]
                 action = args[1]
-                # Call the new Gemini-powered multi-device controller
                 result = smart_home.control_multiple_devices(device_desc, action)
 
         elif tool_name == "search_web":
@@ -111,7 +99,6 @@ def run_tool_from_call_multiple(tool_calls_text: str):
                 result = "check_email tool expects 1 argument."
             else:
                 query = args[0]
-                # Replace the following with your actual email checking logic
                 result = f"Checked email with query: {query}"
 
         else:
@@ -122,7 +109,7 @@ def run_tool_from_call_multiple(tool_calls_text: str):
 
 
 def generate_response(user_input: str, tool_call: str, tool_result: str) -> str:
-    context_for_response = "\n".join(conversation_history[-6:])  # Include recent context
+    context_for_response = "\n".join(conversation_history[-6:])
     prompt = response_prompt.format(
         user_input=user_input, tool_call=tool_call, tool_result=tool_result
     )
@@ -140,15 +127,12 @@ def process_user_input(user_input: str):
     tool_call_or_text = decide_tool(user_input)
 
     if tool_call_or_text.startswith("TOOL:"):
-        # Parse and run multiple TOOL calls
         tool_results = run_tool_from_call_multiple(tool_call_or_text)
 
-        # Add all tool calls and results to history
         for tool_call, tool_result in tool_results:
             conversation_history.append(f"Assistant (tool_call): {tool_call}")
             conversation_history.append(f"Assistant (tool_result): {tool_result}")
 
-        # Combine all tool results into one string for response generation
         combined_tool_calls = "\n".join([tr[0] for tr in tool_results])
         combined_tool_results = "\n".join([str(tr[1]) for tr in tool_results])
 
@@ -161,7 +145,6 @@ def process_user_input(user_input: str):
         return reply, combined_tool_calls, combined_tool_results
 
     else:
-        # Normal chat response
         chat_response = model.generate_content(
             general_chat_prompt
             + "\n"
