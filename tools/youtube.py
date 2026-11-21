@@ -1,19 +1,20 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from config import settings
+
 
 def open_youtube(query: str = ""):
     if not query:
         return "No search query provided for YouTube."
 
     options = webdriver.ChromeOptions()
-    
+
     # Optional: another Chromium-based browser such as Brave (BROWSER_BINARY in .env)
     if settings.browser_binary:
         options.binary_location = settings.browser_binary
@@ -33,7 +34,7 @@ def open_youtube(query: str = ""):
         try:
             # Wait a bit for the page to load
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-            
+
             # Try multiple possible consent button selectors
             consent_selectors = [
                 "//button[contains(text(),'Accept all')]",
@@ -46,9 +47,9 @@ def open_youtube(query: str = ""):
                 "//yt-button-renderer[@id='button']//button[contains(text(), 'Accept')]",
                 "[aria-label='Accept all']",
                 "[data-testid='accept-button']",
-                "button[jsname='b3VHJd']"  # YouTube's specific consent button
+                "button[jsname='b3VHJd']",  # YouTube's specific consent button
             ]
-            
+
             consent_clicked = False
             for selector in consent_selectors:
                 try:
@@ -64,29 +65,25 @@ def open_youtube(query: str = ""):
                     print(f"Clicked consent button with selector: {selector}")
                     consent_clicked = True
                     break
-                except:
+                except Exception:
                     continue
-            
+
             if not consent_clicked:
                 print("No consent popup found or unable to click it")
-                
+
         except Exception as e:
             print(f"Error handling consent popup: {e}")
             pass
 
         # Wait for search box and input query
-        search_box = wait.until(
-            EC.presence_of_element_located((By.NAME, "search_query"))
-        )
+        search_box = wait.until(EC.presence_of_element_located((By.NAME, "search_query")))
         search_box.send_keys(query)
         search_box.send_keys(Keys.RETURN)
 
         # Wait for results page to load and video titles to be visible
-        first_video = wait.until(
-            EC.element_to_be_clickable((By.ID, 'video-title'))
-        )
+        first_video = wait.until(EC.element_to_be_clickable((By.ID, "video-title")))
         first_video.click()
 
         return f"Playing '{query}' on YouTube using Brave browser."
     except Exception as e:
-        return f"Failed to open YouTube: {e}"
+        return f"Failed to open YouTube: {e}"

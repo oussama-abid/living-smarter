@@ -1,7 +1,9 @@
 import re
 import shlex
+
 from prompts.prompts import smarthome_instruction_prompt
 from tools import smart_home
+
 
 def decide_smart_home(user_input, conversation_history, model):
     context = "\n".join(conversation_history[-6:])
@@ -9,8 +11,9 @@ def decide_smart_home(user_input, conversation_history, model):
     response = model.generate_content(prompt)
     return response.candidates[0].content.parts[0].text.strip()
 
+
 def run_smart_home(tool_call):
-    pattern = r'SMARTHOME_TOOL:(\w+)\((.*)\)'
+    pattern = r"SMARTHOME_TOOL:(\w+)\((.*)\)"
     match = re.match(pattern, tool_call.strip())
     if not match:
         return tool_call, "Invalid smart home tool call format."

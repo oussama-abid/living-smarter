@@ -1,7 +1,9 @@
-import sqlite3
 import re
+import sqlite3
 from datetime import datetime
+
 import google.generativeai as genai
+
 from config import settings
 
 DB_PATH = settings.database_path
@@ -22,8 +24,9 @@ ACTION_TO_STATE = {
     "turn on": "on",
     "turn off": "off",
     "activate": "on",
-    "deactivate": "off"
+    "deactivate": "off",
 }
+
 
 def normalize_action(action):
     action = action.lower()
@@ -32,12 +35,17 @@ def normalize_action(action):
             return ACTION_TO_STATE[key]
     return None
 
+
 def extract_attribute_and_value(action: str):
     """
     Extract numeric attribute (volume, temperature, etc.) and value from action string.
     Returns (attribute_name, value) or (None, None) if none found.
     """
-    match = re.search(r'(volume|temperature|value|level|brightness|speed|humidity|temp)[^\d\-\.]*([\d\.\-]+)', action, re.I)
+    match = re.search(
+        r"(volume|temperature|value|level|brightness|speed|humidity|temp)[^\d\-\.]*([\d\.\-]+)",
+        action,
+        re.I,
+    )
     if not match:
         return None, None
 
@@ -57,6 +65,7 @@ def extract_attribute_and_value(action: str):
 
     return attr, val
 
+
 def get_all_devices():
     """Return all devices with name, type, and location."""
     conn = sqlite3.connect(DB_PATH)
@@ -66,12 +75,16 @@ def get_all_devices():
     conn.close()
     return devices
 
+
 def control_device(device_name, action):
     """Control a single device by exact name."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name, type, state, value, volume, unit FROM devices WHERE LOWER(name)=?", (device_name.lower(),))
+    cursor.execute(
+        "SELECT name, type, state, value, volume, unit FROM devices WHERE LOWER(name)=?",
+        (device_name.lower(),),
+    )
     row = cursor.fetchone()
     if not row:
         conn.close()
@@ -128,6 +141,7 @@ def control_device(device_name, action):
 
     msg = ", ".join(msg_parts)
     return f"{name.capitalize()} updated: {msg}."
+
 
 def control_multiple_devices(user_command: str, action: str):
     """
