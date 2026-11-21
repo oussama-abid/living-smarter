@@ -7,7 +7,8 @@ built on Google Gemini understands natural commands, splits them into tasks
 and runs them with tools: smart-home devices, web search, YouTube and Gmail.
 
 It is the prototype behind the research paper *Living Smarter: An AI Voice
-Assistant for Home Automation* (Hochschule Bremen), which asked:
+Assistant for Home Automation* (Hochschule Bremen, [read the paper](docs/paper.pdf)),
+which asked:
 
 1. How accurately can a Gemini-powered assistant understand and execute commands?
 2. How does the LLM help with multi-turn dialogue?
