@@ -1,9 +1,11 @@
 import re
 import shlex
-from prompts.prompts import tool_instruction_prompt, response_prompt
+
+from prompts.prompts import tool_instruction_prompt
 from tools import youtube
+from tools.gmail_tool import get_today_email_count, send_email, summarize_last_n_emails
 from tools.search_web_tool import SearchWebTool
-from tools.gmail_tool import send_email, get_today_email_count, summarize_last_n_emails
+
 
 def decide_tool(user_input, conversation_history, model):
     context = "\n".join(conversation_history[-6:])
@@ -11,8 +13,9 @@ def decide_tool(user_input, conversation_history, model):
     response = model.generate_content(prompt)
     return response.candidates[0].content.parts[0].text.strip()
 
+
 def run_tool(tool_call):
-    pattern = r'TOOL:(\w+)\((.*)\)'
+    pattern = r"TOOL:(\w+)\((.*)\)"
     match = re.match(pattern, tool_call.strip())
     if not match:
         return tool_call, "Invalid tool call format."

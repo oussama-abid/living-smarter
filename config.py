@@ -26,9 +26,7 @@ def _optional(name: str) -> str | None:
 def _required(name: str) -> str:
     value = _optional(name)
     if value is None:
-        raise ConfigError(
-            f"Missing {name}. Copy .env.example to .env and fill in your keys."
-        )
+        raise ConfigError(f"Missing {name}. Copy .env.example to .env and fill in your keys.")
     return value
 
 

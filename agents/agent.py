@@ -1,11 +1,13 @@
-import google.generativeai as genai
-from config import settings
-from prompts.prompts import tool_instruction_prompt, response_prompt, general_chat_prompt
-from tools import smart_home, youtube
-from tools.search_web_tool import SearchWebTool
-from tools.gmail_tool import send_email, get_today_email_count, summarize_last_n_emails
 import re
 import shlex
+
+import google.generativeai as genai
+
+from config import settings
+from prompts.prompts import general_chat_prompt, response_prompt, tool_instruction_prompt
+from tools import smart_home, youtube
+from tools.gmail_tool import get_today_email_count, send_email, summarize_last_n_emails
+from tools.search_web_tool import SearchWebTool
 
 genai.configure(api_key=settings.gemini_api_key)
 
@@ -13,6 +15,7 @@ model = genai.GenerativeModel(settings.gemini_model)
 
 # Keep conversation history here
 conversation_history = []
+
 
 def decide_tool(user_input: str) -> str:
     # First, handle direct "play" commands to avoid extra clarifications
@@ -38,7 +41,7 @@ def run_tool_from_call_multiple(tool_calls_text: str):
     """
     results = []
     lines = [line.strip() for line in tool_calls_text.strip().splitlines() if line.strip()]
-    pattern = r'^TOOL:(\w+)\((.*)\)$'
+    pattern = r"^TOOL:(\w+)\((.*)\)$"
 
     for line in lines:
         match = re.match(pattern, line)
@@ -61,15 +64,17 @@ def run_tool_from_call_multiple(tool_calls_text: str):
 
         elif tool_name == "control_device":
             if len(args) < 2:
-             result = "control_device tool expects at least 2 arguments: device_name_or_desc, action"
+                result = (
+                    "control_device tool expects at least 2 arguments: device_name_or_desc, action"
+                )
             else:
-              # Join all args except last as device identifier / description, last arg is action
-              # (Or just treat first arg as description and second as action if always 2 args)
-              # To support flexible user input, you can do:
-              device_desc = args[0]
-              action = args[1]
-              # Call the new Gemini-powered multi-device controller
-              result = smart_home.control_multiple_devices(device_desc, action)
+                # Join all args except last as device identifier / description, last arg is action
+                # (Or just treat first arg as description and second as action if always 2 args)
+                # To support flexible user input, you can do:
+                device_desc = args[0]
+                action = args[1]
+                # Call the new Gemini-powered multi-device controller
+                result = smart_home.control_multiple_devices(device_desc, action)
 
         elif tool_name == "search_web":
             if len(args) != 1:
@@ -119,9 +124,7 @@ def run_tool_from_call_multiple(tool_calls_text: str):
 def generate_response(user_input: str, tool_call: str, tool_result: str) -> str:
     context_for_response = "\n".join(conversation_history[-6:])  # Include recent context
     prompt = response_prompt.format(
-        user_input=user_input,
-        tool_call=tool_call,
-        tool_result=tool_result
+        user_input=user_input, tool_call=tool_call, tool_result=tool_result
     )
     full_prompt = context_for_response + "\n" + prompt
     response = model.generate_content(full_prompt)
@@ -160,7 +163,10 @@ def process_user_input(user_input: str):
     else:
         # Normal chat response
         chat_response = model.generate_content(
-            general_chat_prompt + "\n" + "\n".join(conversation_history[-6:]) + f"\nUser: {user_input}\nAssistant:"
+            general_chat_prompt
+            + "\n"
+            + "\n".join(conversation_history[-6:])
+            + f"\nUser: {user_input}\nAssistant:"
         )
         reply = chat_response.candidates[0].content.parts[0].text.strip()
         conversation_history.append(f"Assistant: {reply}")
