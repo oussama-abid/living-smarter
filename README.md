@@ -147,4 +147,4 @@ Research and paper by **Oussama Ben Abid** and **Manel Khammari**,
 Hochschule Bremen. Prototype developed by **Oussama Ben Abid**.
 
 The version evaluated in the paper is tagged
-[`v0.1-paper`](https://github.com/oussama-abid/living-smarter/releases/tag/v0.1-paper).
+[`v0.1-paper`](https://github.com/oussama-abid/living-smarter/tree/v0.1-paper).
