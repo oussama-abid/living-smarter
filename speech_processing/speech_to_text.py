@@ -1,4 +1,3 @@
-# speechprocessing/speech_to_text.py
 import asyncio
 from collections.abc import Callable
 
@@ -14,12 +13,6 @@ from config import settings
 
 class SpeechToText:
     def __init__(self, api_key: str | None = None):
-        """
-        Initialize the Speech-to-Text handler with Deepgram
-
-        Args:
-            api_key: Deepgram API key. If None, will use DEEPGRAM_API_KEY env var
-        """
         self.api_key = api_key or settings.deepgram_api_key
         if not self.api_key:
             raise ValueError("Deepgram API key is required")
@@ -33,25 +26,16 @@ class SpeechToText:
         self.interim_transcription = ""
 
     def set_transcription_callback(self, callback: Callable[[str, bool], None]):
-        """
-        Set callback function for transcription results
-
-        Args:
-            callback: Function that takes (transcription_text, is_final) as arguments
-        """
         self.transcription_callback = callback
 
     async def start_listening(self):
-        """Start live transcription from microphone"""
         if self.is_listening:
             print("Already listening...")
             return
 
         try:
-            # Create a websocket connection to Deepgram
             self.dg_connection = self.deepgram.listen.asynclive.v("1")
 
-            # Configure transcription options
             options = LiveOptions(
                 model="nova-2",
                 language="en-US",
@@ -65,7 +49,6 @@ class SpeechToText:
                 endpointing=300,
             )
 
-            # Set up event handlers
             self.dg_connection.on(LiveTranscriptionEvents.Open, self._on_open)
             self.dg_connection.on(LiveTranscriptionEvents.Transcript, self._on_message)
             self.dg_connection.on(LiveTranscriptionEvents.Error, self._on_error)
@@ -75,12 +58,10 @@ class SpeechToText:
             self.dg_connection.on(LiveTranscriptionEvents.UtteranceEnd, self._on_utterance_end)
             self.dg_connection.on(LiveTranscriptionEvents.Close, self._on_close)
 
-            # Start the connection
             if not await self.dg_connection.start(options):
                 print("Failed to connect to Deepgram")
                 return False
 
-            # Create and start microphone
             self.microphone = Microphone(self.dg_connection.send)
             self.microphone.start()
 
@@ -93,18 +74,15 @@ class SpeechToText:
             return False
 
     async def stop_listening(self):
-        """Stop live transcription"""
         if not self.is_listening:
             return
 
         self.is_listening = False
 
-        # Stop microphone
         if self.microphone:
             self.microphone.finish()
             self.microphone = None
 
-        # Close connection
         if self.dg_connection:
             await self.dg_connection.finish()
             self.dg_connection = None
@@ -115,7 +93,6 @@ class SpeechToText:
         print("Connection opened")
 
     def _on_message(self, result, **kwargs):
-        """Handle transcription results"""
         sentence = result.channel.alternatives[0].transcript
 
         if len(sentence) == 0:
@@ -153,15 +130,6 @@ class SpeechToText:
         print("Connection closed")
 
     def get_latest_transcription(self, final_only: bool = True) -> str:
-        """
-        Get the latest transcription
-
-        Args:
-            final_only: If True, return only final transcription. If False, return interim or final
-
-        Returns:
-            Latest transcription text
-        """
         if final_only:
             return self.final_transcription
         else:
@@ -169,7 +137,6 @@ class SpeechToText:
 
 
 def run_speech_to_text_demo():
-    """Demo function to test speech-to-text functionality"""
 
     def transcription_handler(text: str, is_final: bool):
         status = "Final" if is_final else "Interim"
@@ -181,7 +148,6 @@ def run_speech_to_text_demo():
 
         await stt.start_listening()
 
-        # Listen for 10 seconds
         await asyncio.sleep(10)
 
         await stt.stop_listening()

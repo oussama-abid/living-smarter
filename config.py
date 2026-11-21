@@ -1,10 +1,3 @@
-"""All settings in one place.
-
-Values come from environment variables, usually through a `.env` file
-(see `.env.example`). Every other module imports `settings` from here
-instead of reading the environment itself.
-"""
-
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,7 +8,7 @@ load_dotenv()
 
 
 class ConfigError(RuntimeError):
-    """A required setting is missing."""
+    pass
 
 
 def _optional(name: str) -> str | None:
@@ -32,20 +25,17 @@ def _required(name: str) -> str:
 
 @dataclass(frozen=True)
 class Settings:
-    # Language model
     gemini_api_key: str
-    gemini_model: str  # orchestrator and responses
-    gemini_helper_model: str  # smaller tasks: device matching, email drafts
+    gemini_model: str
+    gemini_helper_model: str
 
-    # Optional services (each tool explains what is missing when it is used)
     tavily_api_key: str | None
     deepgram_api_key: str | None
 
-    # Files
     database_path: Path
     google_credentials_path: Path
     google_token_path: Path
-    browser_binary: str | None  # None = the default Chrome
+    browser_binary: str | None
 
 
 def load_settings() -> Settings:
@@ -65,7 +55,6 @@ def load_settings() -> Settings:
 
 
 def require(value: str | None, name: str, feature: str) -> str:
-    """Return an optional setting, or explain which feature needs it."""
     if value is None:
         raise ConfigError(f"{feature} needs {name}. Add it to your .env file.")
     return value

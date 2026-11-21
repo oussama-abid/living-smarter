@@ -58,14 +58,13 @@ def test_the_cases_file_is_valid():
     cases = json.loads(CASES_FILE.read_text(encoding="utf-8"))["cases"]
 
     assert len(cases) == 36
-    assert sum(case["paper"]["task_done"] for case in cases) == 26  # as in the paper
+    assert sum(case["paper"]["task_done"] for case in cases) == 26
     assert len({case["id"] for case in cases}) == len(cases)
     for case in cases:
         assert case["command"] and case["category"] and isinstance(case["expect"], list)
 
 
 def test_a_run_never_sends_email_and_uses_its_own_database(devices_db, read_device, monkeypatch):
-    # run_cases swaps the real tools for recorders: put the originals back afterwards
     for name in ("send_email", "get_today_email_count", "summarize_last_n_emails", "SearchWebTool"):
         monkeypatch.setattr(agent, name, getattr(agent, name))
     monkeypatch.setattr(agent.youtube, "open_youtube", agent.youtube.open_youtube)
@@ -93,4 +92,4 @@ def test_a_run_never_sends_email_and_uses_its_own_database(devices_db, read_devi
     assert "Would send an email" in agent.send_email("boss@example.com", "Sick", "Not coming")
     report = write_report([result], "fake-model")
     assert "| 1 | multi-step |" in report
-    assert "| multi-step | 1 / 1 (100%) | 0 / 1 (0%) |" in report  # no paper result for this case
+    assert "| multi-step | 1 / 1 (100%) | 0 / 1 (0%) |" in report

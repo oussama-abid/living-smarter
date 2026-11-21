@@ -78,7 +78,6 @@ def test_control_multiple_devices_uses_the_devices_the_model_picked(read_device,
     assert read_device("light1")["state"] == "on"
     assert read_device("light2")["state"] == "on"
     assert " | " in result
-    # The model chooses from the real device list
     assert "Name: light1, Type: light, Location: living room" in model.prompts[0]
 
 

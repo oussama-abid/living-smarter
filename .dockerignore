@@ -1,4 +1,3 @@
-# Never copy secrets or local state into the image
 .env
 secrets/
 *.db

@@ -4,8 +4,6 @@ from types import SimpleNamespace
 
 import pytest
 
-# Settings are read when the app modules are imported: give them a fake key
-# so the tests never need (or use) a real one.
 os.environ["GEMINI_API_KEY"] = "test-key-not-real"
 
 from db import device_db  # noqa: E402
@@ -13,8 +11,6 @@ from tools import smart_home  # noqa: E402
 
 
 class FakeModel:
-    """Stands in for a Gemini model: returns prepared replies, records the prompts."""
-
     def __init__(self, *replies: str):
         self.replies = list(replies)
         self.prompts: list[str] = []
@@ -29,7 +25,6 @@ class FakeModel:
 
 @pytest.fixture
 def devices_db(tmp_path, monkeypatch):
-    """A fresh simulated smart home in a temporary SQLite file."""
     path = tmp_path / "devices.db"
     monkeypatch.setattr(device_db, "DB_PATH", path)
     monkeypatch.setattr(smart_home, "DB_PATH", path)
@@ -40,7 +35,6 @@ def devices_db(tmp_path, monkeypatch):
 
 @pytest.fixture
 def read_device(devices_db):
-    """Read one device's current state from the test database."""
 
     def read(name: str) -> dict:
         connection = sqlite3.connect(devices_db)

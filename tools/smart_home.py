@@ -11,7 +11,6 @@ DB_PATH = settings.database_path
 genai.configure(api_key=settings.gemini_api_key)
 model = genai.GenerativeModel(settings.gemini_helper_model)
 
-# Map various user actions to normalized device states
 ACTION_TO_STATE = {
     "on": "on",
     "off": "off",
@@ -30,7 +29,6 @@ ACTION_TO_STATE = {
 
 def normalize_action(action):
     action = action.lower()
-    # Longest phrases first: "unlock" contains "lock", "deactivate" contains "activate"
     for key in sorted(ACTION_TO_STATE, key=len, reverse=True):
         if key in action:
             return ACTION_TO_STATE[key]
@@ -38,10 +36,6 @@ def normalize_action(action):
 
 
 def extract_attribute_and_value(action: str):
-    """
-    Extract numeric attribute (volume, temperature, etc.) and value from action string.
-    Returns (attribute_name, value) or (None, None) if none found.
-    """
     match = re.search(
         r"(volume|temperature|value|level|brightness|speed|humidity|temp)[^\d\-\.]*([\d\.\-]+)",
         action,
@@ -58,9 +52,8 @@ def extract_attribute_and_value(action: str):
         try:
             val = float(val_str)
         except ValueError:
-            val = val_str  # fallback to string if parsing fails
+            val = val_str
 
-    # Normalize attribute name variants
     if attr in ["temperature", "temp", "level", "humidity", "brightness", "speed"]:
         attr = "value"
 
@@ -68,17 +61,15 @@ def extract_attribute_and_value(action: str):
 
 
 def get_all_devices():
-    """Return all devices with name, type, and location."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT name, type, location FROM devices")
-    devices = cursor.fetchall()  # List of tuples (name, type, location)
+    devices = cursor.fetchall()
     conn.close()
     return devices
 
 
 def control_device(device_name, action):
-    """Control a single device by exact name."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -100,14 +91,12 @@ def control_device(device_name, action):
     updates = []
     params = []
 
-    # Update state if changed
     if new_state and new_state != state:
         updates.append("state=?")
         params.append(new_state)
     else:
         new_state = state
 
-    # Update attribute values if present and changed
     if attr and attr_val is not None:
         if attr == "volume" and volume != attr_val:
             updates.append("volume=?")
@@ -120,7 +109,6 @@ def control_device(device_name, action):
         conn.close()
         return f"{name.capitalize()} is already set as requested."
 
-    # Update last_updated timestamp
     updates.append("last_updated=?")
     params.append(now)
 
@@ -131,7 +119,6 @@ def control_device(device_name, action):
     conn.commit()
     conn.close()
 
-    # Prepare confirmation message
     msg_parts = []
     if "state=?" in updates:
         msg_parts.append(f"state set to '{new_state}'")
@@ -145,15 +132,10 @@ def control_device(device_name, action):
 
 
 def control_multiple_devices(user_command: str, action: str):
-    """
-    Uses Gemini to parse user_command, find matching devices from all devices,
-    and control each one accordingly.
-    """
     devices = get_all_devices()
     if not devices:
         return "No devices found in the system."
 
-    # Prepare device info for Gemini prompt
     devices_info = "\n".join(
         [f"Name: {name}, Type: {typ}, Location: {loc}" for (name, typ, loc) in devices]
     )
@@ -178,7 +160,6 @@ Separate device names by commas, with no additional explanation.
     if not device_names:
         return "Sorry, I couldn't find any devices matching your request."
 
-    # Control each device and collect results
     results = []
     for device_name in device_names:
         res = control_device(device_name, action)

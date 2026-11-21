@@ -63,7 +63,6 @@ def run_tool(tool_call):
         if len(args) != 1:
             return tool_call, "check_email expects 1 argument."
         query = args[0]
-        # Implement your email query logic here
         return tool_call, f"Email query result for: {query}"
 
     return tool_call, "Unknown tool."
